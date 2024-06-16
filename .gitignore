@@ -1,0 +1,4 @@
+/.zig-cache
+/vscode
+/zig-out
+node_modules

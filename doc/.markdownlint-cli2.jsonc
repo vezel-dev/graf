@@ -1,0 +1,9 @@
+{
+  "globs": [
+    "**/*.md"
+  ],
+  "ignores": [
+    "node_modules"
+  ],
+  "noBanner": true
+}

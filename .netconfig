@@ -1,0 +1,35 @@
+[file "doc/.markdownlint-cli2.jsonc"]
+	url = https://github.com/vezel-dev/.github/blob/master/syn/doc/.markdownlint-cli2.jsonc
+	sha = 79a34107efedda78605993004caf9c116f4d0205
+	etag = 8580c99a1177ec3fac0ad7d6f1036783746f26946c9e1d8a70b7c6aef965aa98
+	weak
+[file "doc/.markdownlint.json"]
+	url = https://github.com/vezel-dev/.github/blob/master/syn/doc/.markdownlint.json
+	sha = 7d581ae5eedad5892855cebc673edafad664856b
+	etag = d763492a10cc6e14ba8f8ffe3279eda7964580ed9e18bcd6c7875fe2f53f226b
+	weak
+[file ".editorconfig"]
+	url = https://github.com/vezel-dev/.github/blob/master/syn/.editorconfig
+	sha = 25cfbb6a508a9fcf8444ef283ddfe7b2e5121bca
+	etag = df90691e6bc4d301e82e508fca55eed234028a335c3615cf916db00cb4a053f1
+	weak
+[file ".gitattributes"]
+	url = https://github.com/vezel-dev/.github/blob/master/syn/.gitattributes
+	sha = e1d60d738e36f3741104a47c67156614aa5b9d8b
+	etag = 57083d3c73ff7ab2740ab17fd99d31cedcff606818190f9a415d97d27b62e7d4
+	weak
+[file ".gitbook.yaml"]
+	url = https://github.com/vezel-dev/.github/blob/master/syn/.gitbook.yaml
+	sha = 25cfbb6a508a9fcf8444ef283ddfe7b2e5121bca
+	etag = 2c61aa3283d489333ffbd76b9d6653482e6fcb8f9b22eed965f569f4bed2cbb0
+	weak
+[file ".markdownlint.json"]
+	url = https://github.com/vezel-dev/.github/blob/master/syn/.markdownlint.json
+	sha = 7d581ae5eedad5892855cebc673edafad664856b
+	etag = cf98ac95cf318b52e206b9003e342de9db2ecb7be062eab6edf1681b1f374b3a
+	weak
+[file "LICENSE-0BSD"]
+	url = https://github.com/vezel-dev/.github/blob/master/syn/LICENSE-0BSD
+	sha = 7d581ae5eedad5892855cebc673edafad664856b
+	etag = 4fe195e9c11a20688615d92035ac752eeac4ab3f3d82b20df798ea6dc1b49aab
+	weak

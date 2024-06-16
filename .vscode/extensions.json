@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "chdsbd.github-code-owners",
+    "codezombiech.gitignore",
+    "davidanson.vscode-markdownlint",
+    "dtsvet.vscode-wasm",
+    "editorconfig.editorconfig",
+    "github.vscode-github-actions",
+    "github.vscode-pull-request-github",
+    "jock.svg",
+    "llvm-vs-code-extensions.vscode-clangd",
+    "redhat.vscode-yaml",
+    "tintinweb.graphviz-interactive-preview",
+    "yy0931.gitconfig-lsp",
+    "ziglang.vscode-zig"
+  ]
+}

@@ -1,0 +1,106 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Release
+on:
+  release:
+    types:
+      - published
+permissions:
+  attestations: write
+  contents: write
+  id-token: write
+defaults:
+  run:
+    shell: bash
+jobs:
+  release:
+    if: github.repository == 'vezel-dev/graf'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4.1.6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Set up Zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.13.0
+      - name: Set up Pandoc
+        uses: r-lib/actions/setup-pandoc@v2.9.0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version-file: doc/package.json
+      - name: Extract build version
+        id: version
+        run: |
+          echo version=$(sed '/^\s*\.version\s*=\s*"\([^"]*\)"\{0,1\},$/ {s//\1/p; q}' build.zig.zon -n) >> $GITHUB_OUTPUT
+      # Keep the target list in sync with build.yml.
+      - name: Build and package binary artifacts
+        run: |
+          mkdir artifacts
+
+          linuxver=4.19.0
+          glibcver=2.17.0
+          macosver=11.7.0
+          windowsver=win8_1
+
+          for target in aarch64-linux.$linuxver-gnu.$glibcver \
+                        aarch64-linux.$linuxver-musl \
+                        arm-linux.$linuxver-gnueabi.$glibcver \
+                        arm-linux.$linuxver-gnueabihf.$glibcver \
+                        arm-linux.$linuxver-musleabi \
+                        arm-linux.$linuxver-musleabihf \
+                        mips-linux.$linuxver-gnueabi.$glibcver \
+                        mips-linux.$linuxver-gnueabihf.$glibcver \
+                        mips-linux.$linuxver-musl \
+                        mips64-linux.$linuxver-gnuabi64.$glibcver \
+                        mips64-linux.$linuxver-musl \
+                        mips64el-linux.$linuxver-gnuabi64.$glibcver \
+                        mips64el-linux.$linuxver-musl \
+                        mipsel-linux.$linuxver-gnueabi.$glibcver \
+                        mipsel-linux.$linuxver-gnueabihf.$glibcver \
+                        mipsel-linux.$linuxver-musl \
+                        powerpc-linux.$linuxver-gnueabi.$glibcver \
+                        powerpc-linux.$linuxver-gnueabihf.$glibcver \
+                        powerpc-linux.$linuxver-musl \
+                        powerpc64-linux.$linuxver-gnu.$glibcver \
+                        powerpc64-linux.$linuxver-musl \
+                        powerpc64le-linux.$linuxver-gnu.$glibcver \
+                        powerpc64le-linux.$linuxver-musl \
+                        riscv64-linux.$linuxver-gnu.$glibcver \
+                        riscv64-linux.$linuxver-musl \
+                        x86-linux.$linuxver-gnu.$glibcver \
+                        x86-linux.$linuxver-musl \
+                        x86_64-linux.$linuxver-gnu.$glibcver \
+                        x86_64-linux.$linuxver-musl \
+                        aarch64-macos.$macosver-none \
+                        x86_64-macos.$macosver-none \
+                        aarch64-windows.$windowsver-gnu \
+                        x86_64-windows.$windowsver-gnu; do
+              zig build --summary all -Dtarget=$target -Doptimize=ReleaseFast
+
+              pushd zig-out
+              zip ../artifacts/Graf.${{ steps.version.outputs.version }}.$target.zip . -r -9
+              popd
+          done
+      - name: Build VS Code extension
+        run: |
+          zig build vscode --summary all
+      - name: Attest binary artifacts
+        uses: actions/attest-build-provenance@v1.1.2
+        with:
+          subject-path: artifacts/*.zip
+      - name: Attest VS Code extension
+        uses: actions/attest-build-provenance@v1.1.2
+        with:
+          subject-path: vscode/*.vsix
+      - name: Upload binary artifacts
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} artifacts/*.zip --clobber
+      # TODO: Remove --pre-release flag (and preview property in package.json).
+      - name: Upload VS Code extension
+        working-directory: sup/vscode
+        run: |
+          npx vsce publish --pre-release --skip-duplicate -p ${{ secrets.VSCE_TOKEN }} -i ../../vscode/*.vsix
+          npx ovsx publish --pre-release --skip-duplicate -p ${{ secrets.OVSX_TOKEN }} -i ../../vscode/*.vsix

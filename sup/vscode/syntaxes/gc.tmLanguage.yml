@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json
+uuid: 46caca91-0cee-41df-ad06-ae6124cebb7b
+name: gc
+scopeName: source.gc
+fileTypes:
+  - gc
+
+# TODO: Define the language syntax.
+patterns: []

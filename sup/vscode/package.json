@@ -1,0 +1,85 @@
+{
+  "name": "graf",
+  "version": "0.1.0-dev",
+  "displayName": "Graf",
+  "description": "Graph Code language support for Visual Studio Code.",
+  "publisher": "vezel",
+  "preview": true,
+  "license": "0BSD",
+  "homepage": "https://docs.vezel.dev/graf",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vezel-dev/graf"
+  },
+  "bugs": {
+    "url": "https://github.com/vezel-dev/graf/issues"
+  },
+  "qna": "https://github.com/vezel-dev/graf/discussions",
+  "sponsor": {
+    "url": "https://github.com/sponsors/vezel-dev"
+  },
+  "icon": "graf.png",
+  "badges": [
+    {
+      "description": "License",
+      "url": "https://img.shields.io/github/license/vezel-dev/graf?color=brown",
+      "href": "https://github.com/vezel-dev/graf/blob/master/LICENSE-0BSD"
+    },
+    {
+      "description": "Commits",
+      "url": "https://img.shields.io/github/commit-activity/m/vezel-dev/graf/master?label=commits&color=slateblue",
+      "href": "https://github.com/vezel-dev/graf/commits/master"
+    },
+    {
+      "description": "Build",
+      "url": "https://img.shields.io/github/actions/workflow/status/vezel-dev/graf/build.yml?branch=master",
+      "href": "https://github.com/vezel-dev/graf/actions/workflows/build.yml"
+    }
+  ],
+  "categories": [
+    "Programming Languages"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "vscode": "^1.89.0"
+  },
+  "contributes": {
+    "grammars": [
+      {
+        "language": "gc",
+        "scopeName": "source.gc",
+        "path": "syntaxes/gc.tmLanguage.json"
+      }
+    ],
+    "languages": [
+      {
+        "id": "gc",
+        "aliases": [
+          "Graph Code"
+        ],
+        "icon": {
+          "light": "graf.svg",
+          "dark": "graf.svg"
+        },
+        "extensions": [
+          ".gc"
+        ],
+        "configuration": "language-configuration.json"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@vscode/vsce": "2.26.1",
+    "cpy-cli": "5.0.0",
+    "js-yaml": "4.1.0",
+    "mkdirp": "3.0.1",
+    "ovsx": "0.9.1",
+    "rimraf": "5.0.7"
+  },
+  "scripts": {
+    "build": "rimraf ../../vscode/tmp && mkdirp ../../vscode/tmp && cpy README.md language-configuration.json package.json ../../vscode/tmp && mkdirp ../../vscode/tmp/syntaxes && js-yaml syntaxes/gc.tmLanguage.yml > ../../vscode/tmp/syntaxes/gc.tmLanguage.json && cd ../../vscode/tmp && cpy ../../LICENSE-0BSD . --flat --rename=LICENSE && cpy \"../../graf.{png,svg}\" . --flat && vsce package -o ../.."
+  },
+  "vsce": {
+    "prerelease": true
+  }
+}

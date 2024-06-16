@@ -1,0 +1,101 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Build
+on:
+  push:
+    branches-ignore:
+      - dependabot/**
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-12
+          - macos-13
+          - macos-14
+          - ubuntu-20.04
+          - ubuntu-22.04
+          - ubuntu-24.04
+          - windows-2019
+          - windows-2022
+        mode:
+          - Debug
+          - ReleaseFast
+          - ReleaseSafe
+          - ReleaseSmall
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4.1.6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Set up Zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.13.0
+      - name: Set up Pandoc
+        uses: r-lib/actions/setup-pandoc@v2.9.0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version-file: doc/package.json
+      - name: Check source code and documentation
+        run: |
+          zig build check --summary all
+      - name: Build VS Code extension
+        run: |
+          zig build vscode --summary all
+      # Keep the target list in sync with release.yml.
+      - name: Build binary artifacts
+        run: |
+          linuxver=4.19.0
+          glibcver=2.17.0
+          macosver=11.7.0
+          windowsver=win8_1
+
+          for target in aarch64-linux.$linuxver-gnu.$glibcver \
+                        aarch64-linux.$linuxver-musl \
+                        arm-linux.$linuxver-gnueabi.$glibcver \
+                        arm-linux.$linuxver-gnueabihf.$glibcver \
+                        arm-linux.$linuxver-musleabi \
+                        arm-linux.$linuxver-musleabihf \
+                        mips-linux.$linuxver-gnueabi.$glibcver \
+                        mips-linux.$linuxver-gnueabihf.$glibcver \
+                        mips-linux.$linuxver-musl \
+                        mips64-linux.$linuxver-gnuabi64.$glibcver \
+                        mips64-linux.$linuxver-musl \
+                        mips64el-linux.$linuxver-gnuabi64.$glibcver \
+                        mips64el-linux.$linuxver-musl \
+                        mipsel-linux.$linuxver-gnueabi.$glibcver \
+                        mipsel-linux.$linuxver-gnueabihf.$glibcver \
+                        mipsel-linux.$linuxver-musl \
+                        powerpc-linux.$linuxver-gnueabi.$glibcver \
+                        powerpc-linux.$linuxver-gnueabihf.$glibcver \
+                        powerpc-linux.$linuxver-musl \
+                        powerpc64-linux.$linuxver-gnu.$glibcver \
+                        powerpc64-linux.$linuxver-musl \
+                        powerpc64le-linux.$linuxver-gnu.$glibcver \
+                        powerpc64le-linux.$linuxver-musl \
+                        riscv64-linux.$linuxver-gnu.$glibcver \
+                        riscv64-linux.$linuxver-musl \
+                        x86-linux.$linuxver-gnu.$glibcver \
+                        x86-linux.$linuxver-musl \
+                        x86_64-linux.$linuxver-gnu.$glibcver \
+                        x86_64-linux.$linuxver-musl \
+                        aarch64-macos.$macosver-none \
+                        x86_64-macos.$macosver-none \
+                        aarch64-windows.$windowsver-gnu \
+                        x86_64-windows.$windowsver-gnu; do
+              zig build --summary all -Dtarget=$target -Doptimize=${{ matrix.mode }}
+          done
+      - name: Build and run tests
+        run: |
+          zig build test --summary all -Doptimize=${{ matrix.mode }}

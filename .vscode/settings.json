@@ -1,0 +1,8 @@
+{
+    "files.exclude": {
+      ".zig-cache": true,
+      "vscode": true,
+      "zig-out": true,
+      "**/node_modules": true
+    }
+  }
