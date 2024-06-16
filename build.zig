@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) anyerror!void {
 
     // TODO: https://github.com/ziglang/zig/issues/15373
     const pandoc_prog = b.findProgram(&.{"pandoc"}, &.{}) catch @panic("Could not locate `pandoc` program.");
-    const npm_prog = b.findProgram(&.{"npm"}, &.{}) catch @panic("Could not locate `npm` program.");
+    const npm_prog = b.findProgram(&.{"npm", "npm.cmd"}, &.{}) catch @panic("Could not locate `npm` program.");
     const code_prog = b.findProgram(&.{"code"}, &.{}) catch @panic("Could not locate `code` program.");
 
     const install_step = b.getInstallStep();
