@@ -47,6 +47,10 @@ jobs:
         uses: actions/setup-node@v4.0.2
         with:
           node-version-file: doc/package.json
+      # TODO: Remove this hack when `code` is made optional.
+      - name: Workaround for issue 6
+        run: |
+          sudo touch /usr/bin/code
       - name: Check source code and documentation
         run: |
           zig build check --summary all
