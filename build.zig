@@ -45,11 +45,11 @@ pub fn build(b: *std.Build) anyerror!void {
     vscode_step.dependOn(&npm_run_build_vscode.step);
 
     inline for (.{ npm_install_vscode_step, npm_run_build_vscode }) |step| {
-        step.setCwd(b.path("sup/vscode"));
+        step.setCwd(b.path(b.pathJoin(&.{ "sup", "vscode" })));
     }
 
     const code_install_extension_step = b.addSystemCommand(
-        &.{ code_prog, "--install-extension", b.fmt("vscode/graf-{s}.vsix", .{version}) },
+        &.{ code_prog, "--install-extension", b.pathJoin(&.{ "vscode", b.fmt("graf-{s}.vsix", .{version}) }) },
     );
     code_install_extension_step.step.dependOn(&npm_run_build_vscode.step);
 
@@ -89,7 +89,7 @@ pub fn build(b: *std.Build) anyerror!void {
     }).step);
 
     const graf_mod = b.addModule("graf", .{
-        .root_source_file = b.path("lib/graf.zig"),
+        .root_source_file = b.path(b.pathJoin(&.{ "lib", "graf.zig" })),
         .target = target_opt,
         .optimize = optimize_opt,
         // Avoid adding opinionated build options to the module itself as those will be forced on third-party users.
@@ -109,12 +109,12 @@ pub fn build(b: *std.Build) anyerror!void {
         }
     }
 
-    install_step.dependOn(&b.addInstallHeaderFile(b.path("inc/graf.h"), "graf.h").step);
+    install_step.dependOn(&b.addInstallHeaderFile(b.path(b.pathJoin(&.{ "inc", "graf.h" })), "graf.h").step);
 
     const stlib_step = b.addStaticLibrary(.{
         // Avoid name clash with the DLL import library on Windows.
         .name = if (target_opt.result.os.tag == .windows) "libgraf" else "graf",
-        .root_source_file = b.path("lib/c.zig"),
+        .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
         .target = target_opt,
         .optimize = optimize_opt,
         .strip = optimize_opt != .Debug,
@@ -122,7 +122,7 @@ pub fn build(b: *std.Build) anyerror!void {
 
     const shlib_step = b.addSharedLibrary(.{
         .name = "graf",
-        .root_source_file = b.path("lib/c.zig"),
+        .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
         .target = target_opt,
         .optimize = optimize_opt,
         .strip = optimize_opt != .Debug,
@@ -148,7 +148,7 @@ pub fn build(b: *std.Build) anyerror!void {
         \\
         \\Cflags: -I${{includedir}}
         \\Libs: -L${{libdir}} -lgraf
-    , .{version})), "pkgconfig/graf.pc").step);
+    , .{version})), b.pathJoin(&.{ "pkgconfig", "graf.pc" })).step);
 
     const clap_mod = b.dependency("clap", .{
         .target = target_opt,
@@ -172,7 +172,7 @@ pub fn build(b: *std.Build) anyerror!void {
 
             const exe_step = b.addExecutable(.{
                 .name = bin_name,
-                .root_source_file = b.path(b.fmt("bin/{s}/main.zig", .{name})),
+                .root_source_file = b.path(b.pathJoin(&.{ "bin", name, "main.zig" })),
                 .target = target_opt,
                 .optimize = optimize_opt,
                 .strip = optimize_opt != .Debug,
@@ -221,20 +221,23 @@ pub fn build(b: *std.Build) anyerror!void {
                 b.fmt("footer={s}", .{version}),
             });
 
-            pandoc_step.addFileArg(b.path(b.fmt("doc/tools/{s}.md", .{name})));
+            pandoc_step.addFileArg(b.path(b.pathJoin(&.{ "doc", "tools", b.fmt("{s}.md", .{name}) })));
 
             const man_basename = b.fmt("{s}.1", .{bin_name});
             const man_path = pandoc_step.addPrefixedOutputFileArg("-o", man_basename);
 
             pandoc_step.expectExitCode(0);
 
-            install_step.dependOn(&b.addInstallFile(man_path, b.fmt("share/man/man1/{s}", .{man_basename})).step);
+            install_step.dependOn(&b.addInstallFile(
+                man_path,
+                b.pathJoin(&.{ "share", "man", "man1", man_basename }),
+            ).step);
         }
     }
 
     const run_test_step = b.addRunArtifact(b.addTest(.{
         .name = "graf-test",
-        .root_source_file = b.path("lib/graf.zig"),
+        .root_source_file = b.path(b.pathJoin(&.{ "lib", "graf.zig" })),
         .target = target_opt,
         .optimize = optimize_opt,
     }));
