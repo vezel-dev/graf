@@ -47,16 +47,11 @@ jobs:
         uses: actions/setup-node@v4.0.2
         with:
           node-version-file: sup/vscode/package.json
-      # TODO: Remove this hack.
-      - name: Workarounds for issues 6 and 17
+      # TODO: Remove this hack when `code` is made optional.
+      - name: Workaround for issue 6
         run: |
           mkdir hack
-
           touch hack/code
-          touch hack/code.exe
-
-          ln -s "$(which npm)" hack/npm.exe
-
           echo "$PWD/hack" >> $GITHUB_PATH
       - name: Check source code and documentation
         run: |
