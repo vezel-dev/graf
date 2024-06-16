@@ -9,7 +9,6 @@
         .aro = .{
             .url = "https://github.com/Vexu/arocc/archive/8a885d8f6b65c6ed44d56a9f51e0401d76e6940d.tar.gz",
             .hash = "1220924a9c1a1762d06d8b0b33ce6c3edf0c3ec4beef1be14177fdc1aaeba301ee03",
-            .lazy = true,
         },
         .clap = .{
             .url = "https://github.com/Hejsil/zig-clap/archive/7a51c11319b3892b81784149fb2cb2915073710c.tar.gz",
