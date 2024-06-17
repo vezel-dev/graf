@@ -75,6 +75,8 @@ pub fn build(b: *std.Build) anyerror!void {
         "bin",
         "chk",
         "lib",
+        "build.zig",
+        "build.zig.zon",
     };
 
     check_step.dependOn(&b.addFmt(.{
