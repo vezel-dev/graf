@@ -12,7 +12,6 @@ pub fn build(b: *std.Build) anyerror!void {
 
     // TODO: https://github.com/ziglang/zig/issues/15373
     const pandoc_prog = b.findProgram(&.{"pandoc"}, &.{}) catch @panic("Could not locate `pandoc` program.");
-    const code_prog = b.findProgram(&.{"code"}, &.{}) catch @panic("Could not locate `code` program.");
 
     const install_step = b.getInstallStep();
     const check_step = b.step("check", "Run source code and documentation checks");
@@ -48,13 +47,13 @@ pub fn build(b: *std.Build) anyerror!void {
     }
 
     const code_install_extension_step = b.addSystemCommand(
-        &.{ code_prog, "--install-extension", b.pathJoin(&.{ "vscode", b.fmt("graf-{s}.vsix", .{version}) }) },
+        &.{ "code", "--install-extension", b.pathJoin(&.{ "vscode", b.fmt("graf-{s}.vsix", .{version}) }) },
     );
     code_install_extension_step.step.dependOn(&npm_run_build_vscode.step);
 
     install_vscode_step.dependOn(&code_install_extension_step.step);
 
-    const code_uninstall_extension_step = b.addSystemCommand(&.{ code_prog, "--uninstall-extension", "vezel.graf" });
+    const code_uninstall_extension_step = b.addSystemCommand(&.{ "code", "--uninstall-extension", "vezel.graf" });
 
     uninstall_vscode_step.dependOn(&code_uninstall_extension_step.step);
 
