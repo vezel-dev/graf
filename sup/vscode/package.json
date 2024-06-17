@@ -34,6 +34,21 @@
       "description": "Build",
       "url": "https://img.shields.io/github/actions/workflow/status/vezel-dev/graf/build.yml?branch=master",
       "href": "https://github.com/vezel-dev/graf/actions/workflows/build.yml"
+    },
+    {
+      "description": "Discussions",
+      "url": "https://img.shields.io/github/discussions/vezel-dev/celerity?color=teal",
+      "href": "https://github.com/vezel-dev/celerity/discussions"
+    },
+    {
+      "description": "Discord",
+      "url": "https://img.shields.io/badge/discord-chat-7289da?logo=discord",
+      "href": "https://discord.gg/wtzCfaX2Nj"
+    },
+    {
+      "description": "Zulip",
+      "url": "https://img.shields.io/badge/zulip-chat-394069?logo=zulip",
+      "href": "https://vezel.zulipchat.com"
     }
   ],
   "categories": [
