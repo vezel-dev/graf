@@ -12,7 +12,6 @@ pub fn build(b: *std.Build) anyerror!void {
 
     // TODO: https://github.com/ziglang/zig/issues/15373
     const pandoc_prog = b.findProgram(&.{"pandoc"}, &.{}) catch @panic("Could not locate `pandoc` program.");
-    const npm_prog = b.findProgram(&.{"npm"}, &.{}) catch @panic("Could not locate `npm` program.");
     const code_prog = b.findProgram(&.{"code"}, &.{}) catch @panic("Could not locate `code` program.");
 
     const install_step = b.getInstallStep();
@@ -22,10 +21,10 @@ pub fn build(b: *std.Build) anyerror!void {
     const install_vscode_step = b.step("install-vscode", "Install VS Code extension");
     const uninstall_vscode_step = b.step("uninstall-vscode", "Uninstall VS Code extension");
 
-    const npm_install_doc_step = b.addSystemCommand(&.{ npm_prog, "install" });
+    const npm_install_doc_step = b.addSystemCommand(&.{ "npm", "install" });
     npm_install_doc_step.setName("npm install");
 
-    const npm_exec_markdownlint_cli2_doc_step = b.addSystemCommand(&.{ npm_prog, "exec", "markdownlint-cli2" });
+    const npm_exec_markdownlint_cli2_doc_step = b.addSystemCommand(&.{ "npm", "exec", "markdownlint-cli2" });
     npm_exec_markdownlint_cli2_doc_step.setName("npm exec markdownlint-cli2");
     npm_exec_markdownlint_cli2_doc_step.step.dependOn(&npm_install_doc_step.step);
 
@@ -35,10 +34,10 @@ pub fn build(b: *std.Build) anyerror!void {
         step.setCwd(b.path("doc"));
     }
 
-    const npm_install_vscode_step = b.addSystemCommand(&.{ npm_prog, "install" });
+    const npm_install_vscode_step = b.addSystemCommand(&.{ "npm", "install" });
     npm_install_vscode_step.setName("npm install");
 
-    const npm_run_build_vscode = b.addSystemCommand(&.{ npm_prog, "run", "build" });
+    const npm_run_build_vscode = b.addSystemCommand(&.{ "npm", "run", "build" });
     npm_run_build_vscode.setName("npm run build");
     npm_run_build_vscode.step.dependOn(&npm_install_vscode_step.step);
 
