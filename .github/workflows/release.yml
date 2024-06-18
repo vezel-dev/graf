@@ -88,11 +88,11 @@ jobs:
         run: |
           zig build vscode --summary all
       - name: Attest binary artifacts
-        uses: actions/attest-build-provenance@v1.3.1
+        uses: actions/attest-build-provenance@v1.3.2
         with:
           subject-path: artifacts/*.zip
       - name: Attest VS Code extension
-        uses: actions/attest-build-provenance@v1.3.1
+        uses: actions/attest-build-provenance@v1.3.2
         with:
           subject-path: vscode/*.vsix
       - name: Upload binary artifacts
