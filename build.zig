@@ -101,10 +101,18 @@ pub fn build(b: *std.Build) anyerror!void {
     }).module("mecha"));
 
     // TODO: Aro should be a lazy dependency, but this causes HTTP problems on macOS.
-    graf_mod.addImport("aro", b.dependency("aro", .{
+    const aro_dep = b.dependency("aro", .{
         .target = target_opt,
         .optimize = optimize_opt,
-    }).module("aro"));
+    });
+
+    graf_mod.addImport("aro", aro_dep.module("aro"));
+
+    b.installDirectory(.{
+        .source_dir = aro_dep.path("include"),
+        .install_dir = .header,
+        .install_subdir = b.pathJoin(&.{ "graf", "aro" }),
+    });
 
     install_step.dependOn(&b.addInstallHeaderFile(b.path(b.pathJoin(&.{ "inc", "graf.h" })), "graf.h").step);
 
