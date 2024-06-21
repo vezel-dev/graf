@@ -120,12 +120,6 @@ pub fn build(b: *std.Build) anyerror!void {
         });
     }
 
-    // TODO: libffi should be a lazy dependency, but this causes HTTP problems on macOS.
-    const ffi_dep = b.dependency("ffi", .{
-        .target = target_opt,
-        .optimize = optimize_opt,
-    });
-
     if (!disable_ffi_opt) {
         if (b.systemIntegrationOption("ffi", .{})) {
             graf_mod.linkSystemLibrary("ffi", .{});
@@ -141,7 +135,11 @@ pub fn build(b: *std.Build) anyerror!void {
             // TODO: https://github.com/ziglang/zig/issues/20361
             else => !target.isDarwin(),
         }) {
-            graf_mod.linkLibrary(ffi_dep.artifact("ffi"));
+            // TODO: libffi should be a lazy dependency, but this causes HTTP problems on macOS.
+            graf_mod.linkLibrary(b.dependency("ffi", .{
+                .target = target_opt,
+                .optimize = optimize_opt,
+            }).artifact("ffi"));
         }
     }
 
