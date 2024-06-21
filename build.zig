@@ -132,6 +132,8 @@ pub fn build(b: *std.Build) anyerror!void {
                 .arm, .armeb => target.getFloatAbi() != .soft and target.os.tag != .windows,
                 // TODO: https://github.com/llvm/llvm-project/issues/58377
                 .mips, .mipsel, .mips64, .mips64el => false,
+                // TODO: https://github.com/ziglang/zig/issues/20376
+                .powerpc, .powerpcle => !target.isGnuLibC(),
                 // TODO: https://github.com/ziglang/zig/issues/19107
                 .riscv32, .riscv64 => !target.isGnuLibC(),
                 else => true,
