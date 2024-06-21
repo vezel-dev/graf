@@ -224,7 +224,7 @@ pub fn build(b: *std.Build) anyerror!void {
                 else => true,
             };
 
-            var exe_mod = exe_step.root_module;
+            const exe_mod = &exe_step.root_module;
 
             exe_mod.addImport("graf", graf_mod);
             exe_mod.addImport("clap", clap_mod);
