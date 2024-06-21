@@ -14,6 +14,10 @@
             .url = "https://github.com/Hejsil/zig-clap/archive/7a51c11319b3892b81784149fb2cb2915073710c.tar.gz",
             .hash = "1220c900c70daf3e715fad6f266ec14b1d0f5e6c2d3f34b32142f60306cb9b5e5f05",
         },
+        .ffi = .{
+            .url = "https://github.com/alexrp/libffi/archive/be74524b614693f612fa0c3951d08bb70f4bb4ea.tar.gz",
+            .hash = "12206c26416ba568c5b932411d21d908e0afea670687245cc568a235dc5a9d028396",
+        },
         .mecha = .{
             .url = "https://github.com/Hejsil/mecha/archive/2edc8ad6b5bb1728f4c6fae358438006b0ce04ee.tar.gz",
             .hash = "12206311fbaae8a0adc35e4835ddd9bcc1ff8fff756c9df40e19133f007fa05d3948",

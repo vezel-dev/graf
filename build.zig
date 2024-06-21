@@ -9,6 +9,7 @@ pub fn build(b: *std.Build) anyerror!void {
     const target_opt = b.standardTargetOptions(.{});
     const optimize_opt = b.standardOptimizeOption(.{});
     const disable_aro_opt = b.option(bool, "disable-aro", "Disable Aro C compiler integration") orelse false;
+    const disable_ffi_opt = b.option(bool, "disable-ffi", "Disable libffi interpreter integration") orelse false;
 
     // TODO: https://github.com/ziglang/zig/issues/15373
     const pandoc_prog = b.findProgram(&.{"pandoc"}, &.{}) catch @panic("Could not locate `pandoc` program.");
@@ -20,6 +21,8 @@ pub fn build(b: *std.Build) anyerror!void {
     const vscode_step = b.step("vscode", "Build VS Code extension");
     const install_vscode_step = b.step("install-vscode", "Install VS Code extension");
     const uninstall_vscode_step = b.step("uninstall-vscode", "Uninstall VS Code extension");
+
+    const target = target_opt.result;
 
     const npm_install_doc_step = b.addSystemCommand(&.{ "npm", "install" });
     npm_install_doc_step.setName("npm install");
@@ -111,6 +114,31 @@ pub fn build(b: *std.Build) anyerror!void {
         graf_mod.addImport("aro", aro_dep.module("aro"));
     }
 
+    // TODO: libffi should be a lazy dependency, but this causes HTTP problems on macOS.
+    const ffi_dep = b.dependency("ffi", .{
+        .target = target_opt,
+        .optimize = optimize_opt,
+    });
+
+    if (!disable_ffi_opt) {
+        if (b.systemIntegrationOption("ffi", .{})) {
+            graf_mod.linkSystemLibrary("ffi", .{});
+        } else if (switch (target.cpu.arch) {
+            // libffi only supports MSVC for Windows on Arm.
+            .aarch64, .aarch64_be, .aarch64_32 => target.os.tag != .windows,
+            // TODO: https://github.com/ziglang/zig/issues/10411
+            .arm, .armeb => target.getFloatAbi() != .soft and target.os.tag != .windows,
+            // TODO: https://github.com/llvm/llvm-project/issues/58377
+            .mips, .mipsel, .mips64, .mips64el => false,
+            // TODO: https://github.com/ziglang/zig/issues/19107
+            .riscv32, .riscv64 => false,
+            // TODO: https://github.com/ziglang/zig/issues/20361
+            else => !target.isDarwin(),
+        }) {
+            graf_mod.linkLibrary(ffi_dep.artifact("ffi"));
+        }
+    }
+
     b.installDirectory(.{
         .source_dir = aro_dep.path("include"),
         .install_dir = .header,
@@ -121,7 +149,7 @@ pub fn build(b: *std.Build) anyerror!void {
 
     const stlib_step = b.addStaticLibrary(.{
         // Avoid name clash with the DLL import library on Windows.
-        .name = if (target_opt.result.os.tag == .windows) "libgraf" else "graf",
+        .name = if (target.os.tag == .windows) "libgraf" else "graf",
         .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
         .target = target_opt,
         .optimize = optimize_opt,
@@ -187,7 +215,7 @@ pub fn build(b: *std.Build) anyerror!void {
             });
 
             // PIE is off by default; enable it for hardening purposes.
-            exe_step.pie = switch (target_opt.result.cpu.arch) {
+            exe_step.pie = switch (target.cpu.arch) {
                 // TODO: https://github.com/ziglang/zig/issues/20305
                 .mips, .mipsel, .mips64, .mips64el => false,
                 .powerpc, .powerpcle, .powerpc64, .powerpc64le => false,
