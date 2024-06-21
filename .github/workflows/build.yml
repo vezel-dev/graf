@@ -82,7 +82,7 @@ jobs:
                         powerpc-linux.$linuxver-musl \
                         powerpc64-linux.$linuxver-gnu.$glibcver \
                         powerpc64-linux.$linuxver-musl \
-                        powerpc64le-linux.$linuxver-gnu.$glibcver \
+                        powerpc64le-linux.$linuxver-gnu.2.19 \
                         powerpc64le-linux.$linuxver-musl \
                         riscv64-linux.$linuxver-gnu.$glibcver \
                         riscv64-linux.$linuxver-musl \
