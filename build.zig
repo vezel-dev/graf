@@ -123,23 +123,27 @@ pub fn build(b: *std.Build) anyerror!void {
     if (!disable_ffi_opt) {
         if (b.systemIntegrationOption("ffi", .{})) {
             graf_mod.linkSystemLibrary("ffi", .{});
-        } else if (switch (target.cpu.arch) {
-            // libffi only supports MSVC for Windows on Arm.
-            .aarch64, .aarch64_be, .aarch64_32 => target.os.tag != .windows,
-            // TODO: https://github.com/ziglang/zig/issues/10411
-            .arm, .armeb => target.getFloatAbi() != .soft and target.os.tag != .windows,
-            // TODO: https://github.com/llvm/llvm-project/issues/58377
-            .mips, .mipsel, .mips64, .mips64el => false,
-            // TODO: https://github.com/ziglang/zig/issues/19107
-            .riscv32, .riscv64 => false,
+        } else {
             // TODO: https://github.com/ziglang/zig/issues/20361
-            else => !target.isDarwin(),
-        }) {
-            // TODO: libffi should be a lazy dependency, but this causes HTTP problems on macOS.
-            graf_mod.linkLibrary(b.dependency("ffi", .{
-                .target = target_opt,
-                .optimize = optimize_opt,
-            }).artifact("ffi"));
+            const libffi_works = !target.isDarwin() and switch (target.cpu.arch) {
+                // libffi only supports MSVC for Windows on Arm.
+                .aarch64, .aarch64_be, .aarch64_32 => target.os.tag != .windows,
+                // TODO: https://github.com/ziglang/zig/issues/10411
+                .arm, .armeb => target.getFloatAbi() != .soft and target.os.tag != .windows,
+                // TODO: https://github.com/llvm/llvm-project/issues/58377
+                .mips, .mipsel, .mips64, .mips64el => false,
+                // TODO: https://github.com/ziglang/zig/issues/19107
+                .riscv32, .riscv64 => !target.isGnuLibC(),
+                else => true,
+            };
+
+            if (libffi_works) {
+                // TODO: libffi should be a lazy dependency, but this causes HTTP problems on macOS.
+                graf_mod.linkLibrary(b.dependency("ffi", .{
+                    .target = target_opt,
+                    .optimize = optimize_opt,
+                }).artifact("ffi"));
+            }
         }
     }
 
