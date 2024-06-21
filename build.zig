@@ -15,6 +15,7 @@ pub fn build(b: *std.Build) anyerror!void {
 
     const install_step = b.getInstallStep();
     const check_step = b.step("check", "Run source code and documentation checks");
+    const fmt_step = b.step("fmt", "Fix source code formatting");
     const test_step = b.step("test", "Build and run tests");
     const vscode_step = b.step("vscode", "Build VS Code extension");
     const install_vscode_step = b.step("install-vscode", "Install VS Code extension");
@@ -84,7 +85,7 @@ pub fn build(b: *std.Build) anyerror!void {
         .check = true,
     }).step);
 
-    b.step("fmt", "Fix source code formatting").dependOn(&b.addFmt(.{
+    fmt_step.dependOn(&b.addFmt(.{
         .paths = fmt_paths,
     }).step);
 
