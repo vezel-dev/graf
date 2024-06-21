@@ -107,7 +107,9 @@ pub fn build(b: *std.Build) anyerror!void {
         .optimize = optimize_opt,
     });
 
-    graf_mod.addImport("aro", aro_dep.module("aro"));
+    if (!disable_aro_opt) {
+        graf_mod.addImport("aro", aro_dep.module("aro"));
+    }
 
     b.installDirectory(.{
         .source_dir = aro_dep.path("include"),
