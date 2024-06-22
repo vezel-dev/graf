@@ -47,6 +47,8 @@ jobs:
 
           for target in aarch64-linux.$linuxver-gnu.$glibcver \
                         aarch64-linux.$linuxver-musl \
+                        aarch64_be-linux.$linuxver-gnu.$glibcver \
+                        aarch64_be-linux.$linuxver-musl \
                         arm-linux.$linuxver-gnueabi.$glibcver \
                         arm-linux.$linuxver-gnueabihf.$glibcver \
                         arm-linux.$linuxver-musleabi \
