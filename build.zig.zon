@@ -15,8 +15,8 @@
             .hash = "12207ee987ce045596cb992cfb15b0d6d9456e50d4721c3061c69dabc2962053644d",
         },
         .ffi = .{
-            .url = "https://github.com/alexrp/libffi/archive/be74524b614693f612fa0c3951d08bb70f4bb4ea.tar.gz",
-            .hash = "12206c26416ba568c5b932411d21d908e0afea670687245cc568a235dc5a9d028396",
+            .url = "https://github.com/alexrp/libffi/archive/ecdf5fb7bac70b7bc114dd544539e13e045b272c.tar.gz",
+            .hash = "1220b872c51ec15c1805d0ab771a28139219234a825cb24fa9eadd7bfe7e5e8ffee3",
         },
         .mecha = .{
             .url = "https://github.com/Hejsil/mecha/archive/2edc8ad6b5bb1728f4c6fae358438006b0ce04ee.tar.gz",
