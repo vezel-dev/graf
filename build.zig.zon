@@ -15,7 +15,7 @@
             .hash = "12207ee987ce045596cb992cfb15b0d6d9456e50d4721c3061c69dabc2962053644d",
         },
         .ffi = .{
-            .url = "https://github.com/alexrp/libffi/archive/ecdf5fb7bac70b7bc114dd544539e13e045b272c.tar.gz",
+            .url = "https://github.com/vezel-dev/libffi/archive/ecdf5fb7bac70b7bc114dd544539e13e045b272c.tar.gz",
             .hash = "1220b872c51ec15c1805d0ab771a28139219234a825cb24fa9eadd7bfe7e5e8ffee3",
         },
         .mecha = .{
