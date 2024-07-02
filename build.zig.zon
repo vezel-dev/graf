@@ -25,7 +25,7 @@
             .hash = "122036860f37a08aa1055c494515e9b33553fe906dc2f77dafc5ece78168cd236f7c",
         },
         .mecha = .{
-            .url = "https://github.com/Hejsil/mecha/archive/2edc8ad6b5bb1728f4c6fae358438006b0ce04ee.tar.gz",
+            .url = "https://github.com/Hejsil/mecha/archive/0.9.0.tar.gz",
             .hash = "12206311fbaae8a0adc35e4835ddd9bcc1ff8fff756c9df40e19133f007fa05d3948",
         },
     },
