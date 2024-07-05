@@ -178,7 +178,7 @@ pub fn build(b: *std.Build) anyerror!void {
         b.installArtifact(step);
     }
 
-    install_step.dependOn(&b.addInstallLibFile(b.addWriteFiles().add("graf.pc", b.fmt(
+    install_step.dependOn(&b.addInstallLibFile(b.addWriteFiles().add("libgraf.pc", b.fmt(
         \\prefix=${{pcfiledir}}/../..
         \\exec_prefix=${{prefix}}
         \\includedir=${{prefix}}/include/graf
@@ -191,7 +191,7 @@ pub fn build(b: *std.Build) anyerror!void {
         \\
         \\Cflags: -I${{includedir}}
         \\Libs: -L${{libdir}} -lgraf
-    , .{version})), b.pathJoin(&.{ "pkgconfig", "graf.pc" })).step);
+    , .{version})), b.pathJoin(&.{ "pkgconfig", "libgraf.pc" })).step);
 
     const clap_mod = b.dependency("clap", .{
         .target = target_opt,
