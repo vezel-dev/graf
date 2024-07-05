@@ -149,7 +149,10 @@ pub fn build(b: *std.Build) anyerror!void {
         }
     }
 
-    install_step.dependOn(&b.addInstallHeaderFile(b.path(b.pathJoin(&.{ "inc", "graf.h" })), "graf.h").step);
+    install_step.dependOn(&b.addInstallHeaderFile(
+        b.path(b.pathJoin(&.{ "inc", "graf.h" })),
+        b.pathJoin(&.{ "graf", "graf.h" }),
+    ).step);
 
     const stlib_step = b.addStaticLibrary(.{
         // Avoid name clash with the DLL import library on Windows.
@@ -178,7 +181,7 @@ pub fn build(b: *std.Build) anyerror!void {
     install_step.dependOn(&b.addInstallLibFile(b.addWriteFiles().add("graf.pc", b.fmt(
         \\prefix=${{pcfiledir}}/../..
         \\exec_prefix=${{prefix}}
-        \\includedir=${{prefix}}/include
+        \\includedir=${{prefix}}/include/graf
         \\libdir=${{prefix}}/lib
         \\
         \\Name: Graf
