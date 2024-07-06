@@ -149,11 +149,6 @@ pub fn build(b: *std.Build) anyerror!void {
         }
     }
 
-    install_tls.dependOn(&b.addInstallHeaderFile(
-        b.path(b.pathJoin(&.{ "inc", "graf.h" })),
-        b.pathJoin(&.{ "graf", "graf.h" }),
-    ).step);
-
     const stlib_step = b.addStaticLibrary(.{
         // Avoid name clash with the DLL import library on Windows.
         .name = if (t.os.tag == .windows) "libgraf" else "graf",
@@ -175,6 +170,8 @@ pub fn build(b: *std.Build) anyerror!void {
     shlib_step.linker_allow_shlib_undefined = false;
 
     inline for (.{ stlib_step, shlib_step }) |step| {
+        step.installHeadersDirectory(b.path("inc"), "graf", .{});
+
         b.installArtifact(step);
     }
 
