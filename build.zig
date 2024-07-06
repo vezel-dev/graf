@@ -6,23 +6,21 @@ const std = @import("std");
 const version = "0.1.0-dev";
 
 pub fn build(b: *std.Build) anyerror!void {
-    const target_opt = b.standardTargetOptions(.{});
-    const optimize_opt = b.standardOptimizeOption(.{});
-    const disable_aro_opt = b.option(bool, "disable-aro", "Disable Aro C compiler integration") orelse false;
-    const disable_ffi_opt = b.option(bool, "disable-ffi", "Disable libffi interpreter integration") orelse false;
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+    const disable_aro = b.option(bool, "disable-aro", "Disable Aro C compiler integration") orelse false;
+    const disable_ffi = b.option(bool, "disable-ffi", "Disable libffi interpreter integration") orelse false;
 
     // TODO: https://github.com/ziglang/zig/issues/15373
     const pandoc_prog = b.findProgram(&.{"pandoc"}, &.{}) catch @panic("Could not locate `pandoc` program.");
 
-    const install_step = b.getInstallStep();
-    const check_step = b.step("check", "Run source code and documentation checks");
-    const fmt_step = b.step("fmt", "Fix source code formatting");
-    const test_step = b.step("test", "Build and run tests");
-    const vscode_step = b.step("vscode", "Build VS Code extension");
-    const install_vscode_step = b.step("install-vscode", "Install VS Code extension");
-    const uninstall_vscode_step = b.step("uninstall-vscode", "Uninstall VS Code extension");
-
-    const target = target_opt.result;
+    const install_tls = b.getInstallStep();
+    const check_tls = b.step("check", "Run source code and documentation checks");
+    const fmt_tls = b.step("fmt", "Fix source code formatting");
+    const test_tls = b.step("test", "Build and run tests");
+    const vscode_tls = b.step("vscode", "Build VS Code extension");
+    const install_vscode_tls = b.step("install-vscode", "Install VS Code extension");
+    const uninstall_vscode_tls = b.step("uninstall-vscode", "Uninstall VS Code extension");
 
     const npm_install_doc_step = b.addSystemCommand(&.{ "npm", "install" });
     npm_install_doc_step.setName("npm install");
@@ -31,7 +29,7 @@ pub fn build(b: *std.Build) anyerror!void {
     npm_exec_markdownlint_cli2_doc_step.setName("npm exec markdownlint-cli2");
     npm_exec_markdownlint_cli2_doc_step.step.dependOn(&npm_install_doc_step.step);
 
-    check_step.dependOn(&npm_exec_markdownlint_cli2_doc_step.step);
+    check_tls.dependOn(&npm_exec_markdownlint_cli2_doc_step.step);
 
     inline for (.{ npm_install_doc_step, npm_exec_markdownlint_cli2_doc_step }) |step| {
         step.setCwd(b.path("doc"));
@@ -44,7 +42,7 @@ pub fn build(b: *std.Build) anyerror!void {
     npm_run_build_vscode.setName("npm run build");
     npm_run_build_vscode.step.dependOn(&npm_install_vscode_step.step);
 
-    vscode_step.dependOn(&npm_run_build_vscode.step);
+    vscode_tls.dependOn(&npm_run_build_vscode.step);
 
     inline for (.{ npm_install_vscode_step, npm_run_build_vscode }) |step| {
         step.setCwd(b.path(b.pathJoin(&.{ "sup", "vscode" })));
@@ -55,11 +53,11 @@ pub fn build(b: *std.Build) anyerror!void {
     );
     code_install_extension_step.step.dependOn(&npm_run_build_vscode.step);
 
-    install_vscode_step.dependOn(&code_install_extension_step.step);
+    install_vscode_tls.dependOn(&code_install_extension_step.step);
 
     const code_uninstall_extension_step = b.addSystemCommand(&.{ "code", "--uninstall-extension", "vezel.graf" });
 
-    uninstall_vscode_step.dependOn(&code_uninstall_extension_step.step);
+    uninstall_vscode_tls.dependOn(&code_uninstall_extension_step.step);
 
     inline for (.{
         npm_install_doc_step,
@@ -83,32 +81,32 @@ pub fn build(b: *std.Build) anyerror!void {
         "build.zig.zon",
     };
 
-    check_step.dependOn(&b.addFmt(.{
+    check_tls.dependOn(&b.addFmt(.{
         .paths = fmt_paths,
         .check = true,
     }).step);
 
-    fmt_step.dependOn(&b.addFmt(.{
+    fmt_tls.dependOn(&b.addFmt(.{
         .paths = fmt_paths,
     }).step);
 
     const graf_mod = b.addModule("graf", .{
         .root_source_file = b.path(b.pathJoin(&.{ "lib", "graf.zig" })),
-        .target = target_opt,
-        .optimize = optimize_opt,
+        .target = target,
+        .optimize = optimize,
         // Avoid adding opinionated build options to the module itself as those will be forced on third-party users.
     });
 
     graf_mod.addImport("mecha", b.dependency("mecha", .{
-        .target = target_opt,
-        .optimize = optimize_opt,
+        .target = target,
+        .optimize = optimize,
     }).module("mecha"));
 
-    if (!disable_aro_opt) {
+    if (!disable_aro) {
         // TODO: Aro should be a lazy dependency, but this causes HTTP problems on macOS.
         const aro_dep = b.dependency("aro", .{
-            .target = target_opt,
-            .optimize = optimize_opt,
+            .target = target,
+            .optimize = optimize,
         });
 
         graf_mod.addImport("aro", aro_dep.module("aro"));
@@ -120,55 +118,57 @@ pub fn build(b: *std.Build) anyerror!void {
         });
     }
 
-    if (!disable_ffi_opt) {
+    const t = target.result;
+
+    if (!disable_ffi) {
         if (b.systemIntegrationOption("ffi", .{})) {
             graf_mod.linkSystemLibrary("ffi", .{});
         } else {
             // TODO: https://github.com/ziglang/zig/issues/20361
-            const libffi_works = !target.isDarwin() and switch (target.cpu.arch) {
+            const libffi_works = !t.isDarwin() and switch (t.cpu.arch) {
                 // libffi only supports MSVC for Windows on Arm.
-                .aarch64, .aarch64_be, .aarch64_32 => target.os.tag != .windows,
+                .aarch64, .aarch64_be, .aarch64_32 => t.os.tag != .windows,
                 // TODO: https://github.com/ziglang/zig/issues/10411
-                .arm, .armeb => target.getFloatAbi() != .soft and target.os.tag != .windows,
+                .arm, .armeb => t.getFloatAbi() != .soft and t.os.tag != .windows,
                 // TODO: https://github.com/llvm/llvm-project/issues/58377
                 .mips, .mipsel, .mips64, .mips64el => false,
                 // TODO: https://github.com/ziglang/zig/issues/20376
-                .powerpc, .powerpcle => !target.isGnuLibC(),
+                .powerpc, .powerpcle => !t.isGnuLibC(),
                 // TODO: https://github.com/ziglang/zig/issues/19107
-                .riscv32, .riscv64 => !target.isGnuLibC(),
+                .riscv32, .riscv64 => !t.isGnuLibC(),
                 else => true,
             };
 
             if (libffi_works) {
                 // TODO: libffi should be a lazy dependency, but this causes HTTP problems on macOS.
                 graf_mod.linkLibrary(b.dependency("ffi", .{
-                    .target = target_opt,
-                    .optimize = optimize_opt,
+                    .target = target,
+                    .optimize = optimize,
                 }).artifact("ffi"));
             }
         }
     }
 
-    install_step.dependOn(&b.addInstallHeaderFile(
+    install_tls.dependOn(&b.addInstallHeaderFile(
         b.path(b.pathJoin(&.{ "inc", "graf.h" })),
         b.pathJoin(&.{ "graf", "graf.h" }),
     ).step);
 
     const stlib_step = b.addStaticLibrary(.{
         // Avoid name clash with the DLL import library on Windows.
-        .name = if (target.os.tag == .windows) "libgraf" else "graf",
+        .name = if (t.os.tag == .windows) "libgraf" else "graf",
         .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
-        .target = target_opt,
-        .optimize = optimize_opt,
-        .strip = optimize_opt != .Debug,
+        .target = target,
+        .optimize = optimize,
+        .strip = optimize != .Debug,
     });
 
     const shlib_step = b.addSharedLibrary(.{
         .name = "graf",
         .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
-        .target = target_opt,
-        .optimize = optimize_opt,
-        .strip = optimize_opt != .Debug,
+        .target = target,
+        .optimize = optimize,
+        .strip = optimize != .Debug,
     });
 
     // On Linux, undefined symbols are allowed in shared libraries by default; override that.
@@ -178,7 +178,7 @@ pub fn build(b: *std.Build) anyerror!void {
         b.installArtifact(step);
     }
 
-    install_step.dependOn(&b.addInstallLibFile(b.addWriteFiles().add("libgraf.pc", b.fmt(
+    install_tls.dependOn(&b.addInstallLibFile(b.addWriteFiles().add("libgraf.pc", b.fmt(
         \\prefix=${{pcfiledir}}/../..
         \\exec_prefix=${{prefix}}
         \\includedir=${{prefix}}/include/graf
@@ -194,8 +194,8 @@ pub fn build(b: *std.Build) anyerror!void {
     , .{version})), b.pathJoin(&.{ "pkgconfig", "libgraf.pc" })).step);
 
     const clap_mod = b.dependency("clap", .{
-        .target = target_opt,
-        .optimize = optimize_opt,
+        .target = target,
+        .optimize = optimize,
     }).module("clap");
 
     inline for (.{
@@ -210,19 +210,19 @@ pub fn build(b: *std.Build) anyerror!void {
         "opt",
         "run",
     }) |name| {
-        if (!disable_aro_opt or !std.mem.eql(u8, name, "cc")) {
+        if (!disable_aro or !std.mem.eql(u8, name, "cc")) {
             const bin_name = b.fmt("gc-{s}", .{name});
 
             const exe_step = b.addExecutable(.{
                 .name = bin_name,
                 .root_source_file = b.path(b.pathJoin(&.{ "bin", name, "main.zig" })),
-                .target = target_opt,
-                .optimize = optimize_opt,
-                .strip = optimize_opt != .Debug,
+                .target = target,
+                .optimize = optimize,
+                .strip = optimize != .Debug,
             });
 
             // PIE is off by default; enable it for hardening purposes.
-            exe_step.pie = switch (target.cpu.arch) {
+            exe_step.pie = switch (t.cpu.arch) {
                 // TODO: https://github.com/ziglang/zig/issues/20305
                 .mips, .mipsel, .mips64, .mips64el => false,
                 .powerpc, .powerpcle, .powerpc64, .powerpc64le => false,
@@ -271,7 +271,7 @@ pub fn build(b: *std.Build) anyerror!void {
 
             pandoc_step.expectExitCode(0);
 
-            install_step.dependOn(&b.addInstallFile(
+            install_tls.dependOn(&b.addInstallFile(
                 man_path,
                 b.pathJoin(&.{ "share", "man", "man1", man_basename }),
             ).step);
@@ -281,14 +281,14 @@ pub fn build(b: *std.Build) anyerror!void {
     const run_test_step = b.addRunArtifact(b.addTest(.{
         .name = "graf-test",
         .root_source_file = b.path(b.pathJoin(&.{ "lib", "graf.zig" })),
-        .target = target_opt,
-        .optimize = optimize_opt,
+        .target = target,
+        .optimize = optimize,
     }));
 
     // Always run tests when requested, even if the binary has not changed.
     run_test_step.has_side_effects = true;
 
-    test_step.dependOn(&run_test_step.step);
+    test_tls.dependOn(&run_test_step.step);
 
     // TODO: Add tests based on CLI invocation.
 
