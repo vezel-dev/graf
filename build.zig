@@ -111,6 +111,7 @@ pub fn build(b: *std.Build) anyerror!void {
 
         graf_mod.addImport("aro", aro_dep.module("aro"));
 
+        // TODO: These headers should also be installed for third-party users somehow.
         b.installDirectory(.{
             .source_dir = aro_dep.path("include"),
             .install_dir = .header,
