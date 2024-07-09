@@ -55,7 +55,7 @@
     "Programming Languages"
   ],
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=20.0.0",
     "vscode": "^1.89.0"
   },
   "contributes": {
