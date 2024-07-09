@@ -89,7 +89,7 @@
     "js-yaml": "4.1.0",
     "mkdirp": "3.0.1",
     "ovsx": "0.9.1",
-    "rimraf": "5.0.8"
+    "rimraf": "6.0.0"
   },
   "scripts": {
     "build": "rimraf ../../vscode/tmp && mkdirp ../../vscode/tmp && cpy README.md language-configuration.json package.json ../../vscode/tmp && mkdirp ../../vscode/tmp/syntaxes && js-yaml syntaxes/gc.tmLanguage.yml > ../../vscode/tmp/syntaxes/gc.tmLanguage.json && cd ../../vscode/tmp && cpy ../../LICENSE-0BSD . --flat --rename=LICENSE && cpy \"../../graf.{png,svg}\" . --flat && vsce package -o ../.."
