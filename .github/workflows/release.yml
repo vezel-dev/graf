@@ -28,7 +28,7 @@ jobs:
       - name: Set up Pandoc
         uses: r-lib/actions/setup-pandoc@v2.9.0
       - name: Set up Node.js
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4.0.3
         with:
           node-version-file: sup/vscode/package.json
       - name: Extract build version
