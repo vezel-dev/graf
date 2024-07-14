@@ -89,10 +89,11 @@
     "js-yaml": "4.1.0",
     "mkdirp": "3.0.1",
     "ovsx": "0.9.1",
-    "rimraf": "6.0.1"
+    "rimraf": "6.0.1",
+    "touch": "3.1.1"
   },
   "scripts": {
-    "build": "rimraf ../../vscode/tmp && mkdirp ../../vscode/tmp && cpy README.md language-configuration.json package.json ../../vscode/tmp && mkdirp ../../vscode/tmp/syntaxes && js-yaml syntaxes/gc.tmLanguage.yml > ../../vscode/tmp/syntaxes/gc.tmLanguage.json && cd ../../vscode/tmp && cpy ../../LICENSE-0BSD . --flat --rename=LICENSE && cpy \"../../graf.{png,svg}\" . --flat && touch .vscodeignore && vsce package -o ../.."
+    "build": "rimraf ../../vscode/tmp && mkdirp ../../vscode/tmp && cpy README.md language-configuration.json package.json ../../vscode/tmp && mkdirp ../../vscode/tmp/syntaxes && js-yaml syntaxes/gc.tmLanguage.yml > ../../vscode/tmp/syntaxes/gc.tmLanguage.json && cd ../../vscode/tmp && cpy ../../LICENSE-0BSD . --flat --rename=LICENSE && cpy \"../../graf.{png,svg}\" . --flat && nodetouch .vscodeignore && vsce package -o ../.."
   },
   "vsce": {
     "prerelease": true
