@@ -93,7 +93,7 @@
     "touch": "3.1.1"
   },
   "scripts": {
-    "build": "rimraf ../../vscode/tmp && mkdirp ../../vscode/tmp && cpy README.md language-configuration.json package.json ../../vscode/tmp && mkdirp ../../vscode/tmp/syntaxes && js-yaml syntaxes/gc.tmLanguage.yml > ../../vscode/tmp/syntaxes/gc.tmLanguage.json && cd ../../vscode/tmp && cpy ../../LICENSE-0BSD . --flat --rename=LICENSE && cpy \"../../graf.{png,svg}\" . --flat && nodetouch .vscodeignore && vsce package -o ../.."
+    "build": "rimraf ../../vscode/tmp && mkdirp ../../vscode/tmp && cpy README.md language-configuration.json package.json ../../vscode/tmp && mkdirp ../../vscode/tmp/syntaxes && js-yaml syntaxes/gc.tmLanguage.yml > ../../vscode/tmp/syntaxes/gc.tmLanguage.json && cd ../../vscode/tmp && cpy ../../LICENSE-0BSD . --flat --rename=LICENSE && cpy \"../../graf.{png,svg}\" . --flat && nodetouch .vscodeignore && vsce package -o .."
   },
   "vsce": {
     "prerelease": true
