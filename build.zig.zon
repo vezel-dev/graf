@@ -17,8 +17,8 @@
             .hash = "1220924a9c1a1762d06d8b0b33ce6c3edf0c3ec4beef1be14177fdc1aaeba301ee03",
         },
         .clap = .{
-            .url = "https://github.com/Hejsil/zig-clap/archive/0.9.0.tar.gz",
-            .hash = "12207ee987ce045596cb992cfb15b0d6d9456e50d4721c3061c69dabc2962053644d",
+            .url = "https://github.com/Hejsil/zig-clap/archive/0.9.1.tar.gz",
+            .hash = "122062d301a203d003547b414237229b09a7980095061697349f8bef41be9c30266b",
         },
         .ffi = .{
             .url = "https://github.com/vezel-dev/libffi/archive/v3.4.6-3.tar.gz",
