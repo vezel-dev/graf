@@ -84,7 +84,7 @@
     ]
   },
   "devDependencies": {
-    "@vscode/vsce": "2.30.0",
+    "@vscode/vsce": "2.31.0",
     "cpy-cli": "5.0.0",
     "js-yaml": "4.1.0",
     "mkdirp": "3.0.1",
