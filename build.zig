@@ -128,7 +128,7 @@ pub fn build(b: *std.Build) anyerror!void {
             // TODO: https://github.com/ziglang/zig/issues/20361
             const libffi_works = !t.isDarwin() and switch (t.cpu.arch) {
                 // libffi only supports MSVC for Windows on Arm.
-                .aarch64, .aarch64_be, .aarch64_32 => t.os.tag != .windows,
+                .aarch64, .aarch64_be => t.os.tag != .windows,
                 // TODO: https://github.com/ziglang/zig/issues/10411
                 .arm, .armeb => t.getFloatAbi() != .soft and t.os.tag != .windows,
                 // TODO: https://github.com/llvm/llvm-project/issues/58377
