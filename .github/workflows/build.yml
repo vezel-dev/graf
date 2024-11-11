@@ -42,7 +42,7 @@ jobs:
         with:
           version: 0.13.0
       - name: Set up Pandoc
-        uses: r-lib/actions/setup-pandoc@v2.10.1
+        uses: r-lib/actions/setup-pandoc@v2.11.0
       - name: Set up Node.js
         uses: actions/setup-node@v4.1.0
         with:
