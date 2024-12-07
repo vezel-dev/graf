@@ -107,6 +107,13 @@ pub fn build(b: *std.Build) anyerror!void {
         // Avoid adding opinionated build options to the module itself as those will be forced on third-party users.
     });
 
+    const graf_opts = b.addOptions();
+
+    graf_opts.addOption(bool, "with_aro", with_aro);
+    graf_opts.addOption(bool, "with_ffi", with_ffi);
+
+    graf_mod.addOptions("options", graf_opts);
+
     graf_mod.addImport("mecha", b.dependency("mecha", .{
         .target = target,
         .optimize = optimize,
