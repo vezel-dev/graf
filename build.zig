@@ -38,9 +38,8 @@ pub fn build(b: *std.Build) anyerror!void {
 
     check_tls.dependOn(&npm_exec_markdownlint_cli2_doc_step.step);
 
-    inline for (.{ npm_install_doc_step, npm_exec_markdownlint_cli2_doc_step }) |step| {
+    inline for (.{ npm_install_doc_step, npm_exec_markdownlint_cli2_doc_step }) |step|
         step.setCwd(b.path("doc"));
-    }
 
     const npm_install_vscode_step = b.addSystemCommand(&.{ "npm", "install" });
     npm_install_vscode_step.setName("npm install");
@@ -51,9 +50,8 @@ pub fn build(b: *std.Build) anyerror!void {
 
     vscode_tls.dependOn(&npm_run_build_vscode.step);
 
-    inline for (.{ npm_install_vscode_step, npm_run_build_vscode }) |step| {
+    inline for (.{ npm_install_vscode_step, npm_run_build_vscode }) |step|
         step.setCwd(b.path(b.pathJoin(&.{ "sup", "vscode" })));
-    }
 
     const code_install_extension_step = b.addSystemCommand(
         &.{ "code", "--install-extension", b.pathJoin(&.{ "vscode", b.fmt("graf-{}.vsix", .{version}) }) },
@@ -80,7 +78,7 @@ pub fn build(b: *std.Build) anyerror!void {
         step.has_side_effects = true;
     }
 
-    const fmt_paths = &[_][]const u8{
+    const fmt_paths: []const []const u8 = &.{
         "bin",
         "chk",
         "lib",
@@ -109,54 +107,48 @@ pub fn build(b: *std.Build) anyerror!void {
         .optimize = optimize,
     }).module("mecha"));
 
-    if (with_aro) {
-        if (b.lazyDependency("aro", .{
-            .target = target,
-            .optimize = optimize,
-        })) |dep| {
-            graf_mod.addImport("aro", dep.module("aro"));
+    if (with_aro) if (b.lazyDependency("aro", .{
+        .target = target,
+        .optimize = optimize,
+    })) |dep| {
+        graf_mod.addImport("aro", dep.module("aro"));
 
-            // TODO: These headers should also be installed for third-party users somehow.
-            if (build_exe or build_stlib or build_shlib) b.installDirectory(.{
-                .source_dir = dep.path("include"),
-                .install_dir = .header,
-                .install_subdir = b.pathJoin(&.{ "graf", "aro" }),
-            });
-        }
-    }
+        // TODO: These headers should also be installed for third-party users somehow.
+        if (build_exe or build_stlib or build_shlib) b.installDirectory(.{
+            .source_dir = dep.path("include"),
+            .install_dir = .header,
+            .install_subdir = b.pathJoin(&.{ "graf", "aro" }),
+        });
+    };
 
     const t = target.result;
 
-    if (with_ffi) {
-        if (b.systemIntegrationOption("ffi", .{})) {
-            graf_mod.linkSystemLibrary("ffi", .{});
-        } else {
-            // TODO: https://github.com/ziglang/zig/issues/20361
-            const libffi_works = !t.isDarwin() and switch (t.cpu.arch) {
-                // libffi only supports MSVC for Windows on Arm.
-                .aarch64, .aarch64_be => t.os.tag != .windows,
-                // TODO: https://github.com/ziglang/zig/issues/10411
-                .arm, .armeb => t.getFloatAbi() != .soft and t.os.tag != .windows,
-                // TODO: https://github.com/llvm/llvm-project/issues/58377
-                .mips, .mipsel, .mips64, .mips64el => false,
-                // TODO: https://github.com/ziglang/zig/issues/20376
-                .powerpc, .powerpcle => !t.isGnuLibC(),
-                // TODO: https://github.com/ziglang/zig/issues/19107
-                .riscv32, .riscv64 => !t.isGnuLibC(),
-                else => true,
-            };
+    if (with_ffi) if (b.systemIntegrationOption("ffi", .{}))
+        graf_mod.linkSystemLibrary("ffi", .{})
+    else {
+        // TODO: https://github.com/ziglang/zig/issues/20361
+        const libffi_works = !t.isDarwin() and switch (t.cpu.arch) {
+            // libffi only supports MSVC for Windows on Arm.
+            .aarch64, .aarch64_be => t.os.tag != .windows,
+            // TODO: https://github.com/ziglang/zig/issues/10411
+            .arm, .armeb => t.getFloatAbi() != .soft and t.os.tag != .windows,
+            // TODO: https://github.com/llvm/llvm-project/issues/58377
+            .mips, .mipsel, .mips64, .mips64el => false,
+            // TODO: https://github.com/ziglang/zig/issues/20376
+            .powerpc, .powerpcle => !t.isGnuLibC(),
+            // TODO: https://github.com/ziglang/zig/issues/19107
+            .riscv32, .riscv64 => !t.isGnuLibC(),
+            else => true,
+        };
 
-            if (libffi_works) {
-                if (b.lazyDependency("ffi", .{
-                    .target = target,
-                    .optimize = optimize,
-                })) |dep| {
-                    graf_mod.addImport("ffi", dep.module("ffi"));
-                    graf_mod.linkLibrary(dep.artifact("ffi"));
-                }
-            }
-        }
-    }
+        if (libffi_works) if (b.lazyDependency("ffi", .{
+            .target = target,
+            .optimize = optimize,
+        })) |dep| {
+            graf_mod.addImport("ffi", dep.module("ffi"));
+            graf_mod.linkLibrary(dep.artifact("ffi"));
+        };
+    };
 
     const stlib_step = if (build_stlib) b.addStaticLibrary(.{
         // Avoid name clash with the DLL import library on Windows.
@@ -208,94 +200,89 @@ pub fn build(b: *std.Build) anyerror!void {
         b.pathJoin(&.{ "pkgconfig", "libgraf.pc" }),
     ).step);
 
-    if (build_exe) {
-        if (b.lazyDependency("clap", .{
-            .target = target,
-            .optimize = optimize,
-        })) |dep| {
-            const clap_mod = dep.module("clap");
+    if (build_exe) if (b.lazyDependency("clap", .{
+        .target = target,
+        .optimize = optimize,
+    })) |dep| {
+        const clap_mod = dep.module("clap");
 
-            inline for (.{
-                "as",
-                "cc",
-                "chk",
-                "dis",
-                "dot",
-                "fmt",
-                "ld",
-                "mc",
-                "opt",
-                "run",
-            }) |name| {
-                if (with_aro or !std.mem.eql(u8, name, "cc")) {
-                    const bin_name = b.fmt("gc-{s}", .{name});
+        inline for (.{
+            "as",
+            "cc",
+            "chk",
+            "dis",
+            "dot",
+            "fmt",
+            "ld",
+            "mc",
+            "opt",
+            "run",
+        }) |name| if (with_aro or !std.mem.eql(u8, name, "cc")) {
+            const bin_name = b.fmt("gc-{s}", .{name});
 
-                    const exe_step = b.addExecutable(.{
-                        .name = bin_name,
-                        .root_source_file = b.path(b.pathJoin(&.{ "bin", name, "main.zig" })),
-                        .version = version,
-                        .target = target,
-                        .optimize = optimize,
-                        .strip = optimize != .Debug,
-                    });
+            const exe_step = b.addExecutable(.{
+                .name = bin_name,
+                .root_source_file = b.path(b.pathJoin(&.{ "bin", name, "main.zig" })),
+                .version = version,
+                .target = target,
+                .optimize = optimize,
+                .strip = optimize != .Debug,
+            });
 
-                    exe_step.pie = switch (t.cpu.arch) {
-                        // TODO: https://github.com/ziglang/zig/issues/20305
-                        .mips, .mipsel, .mips64, .mips64el => false,
-                        .powerpc, .powerpcle, .powerpc64, .powerpc64le => false,
-                        // TODO: https://github.com/ziglang/zig/issues/20306
-                        .riscv64 => false,
-                        else => pie,
-                    };
+            exe_step.pie = switch (t.cpu.arch) {
+                // TODO: https://github.com/ziglang/zig/issues/20305
+                .mips, .mipsel, .mips64, .mips64el => false,
+                .powerpc, .powerpcle, .powerpc64, .powerpc64le => false,
+                // TODO: https://github.com/ziglang/zig/issues/20306
+                .riscv64 => false,
+                else => pie,
+            };
 
-                    const exe_mod = &exe_step.root_module;
+            const exe_mod = &exe_step.root_module;
 
-                    exe_mod.addImport("graf", graf_mod);
-                    exe_mod.addImport("clap", clap_mod);
+            exe_mod.addImport("graf", graf_mod);
+            exe_mod.addImport("clap", clap_mod);
 
-                    b.installArtifact(exe_step);
+            b.installArtifact(exe_step);
 
-                    const run_exe_step = b.addRunArtifact(exe_step);
+            const run_exe_step = b.addRunArtifact(exe_step);
 
-                    if (b.args) |args| {
-                        run_exe_step.addArgs(args);
-                    }
+            if (b.args) |args|
+                run_exe_step.addArgs(args);
 
-                    b.step(bin_name, b.fmt("Build and run `{s}` (pass arguments with `-- <args>`)", .{bin_name}))
-                        .dependOn(&run_exe_step.step);
+            b.step(bin_name, b.fmt("Build and run `{s}` (pass arguments with `-- <args>`)", .{bin_name}))
+                .dependOn(&run_exe_step.step);
 
-                    const pandoc_step = b.addSystemCommand(&.{
-                        pandoc_prog,
-                        "--standalone",
-                        "--fail-if-warnings",
-                        "--shift-heading-level-by=-1",
-                        "-M",
-                        b.fmt("title={s}", .{bin_name}),
-                        "-M",
-                        "author=Vezel Contributors",
-                        "-V",
-                        "section=1",
-                        "-V",
-                        "header=Graf",
-                        "-V",
-                        b.fmt("footer={}", .{version}),
-                    });
+            const pandoc_step = b.addSystemCommand(&.{
+                pandoc_prog,
+                "--standalone",
+                "--fail-if-warnings",
+                "--shift-heading-level-by=-1",
+                "-M",
+                b.fmt("title={s}", .{bin_name}),
+                "-M",
+                "author=Vezel Contributors",
+                "-V",
+                "section=1",
+                "-V",
+                "header=Graf",
+                "-V",
+                b.fmt("footer={}", .{version}),
+            });
 
-                    pandoc_step.addFileArg(b.path(b.pathJoin(&.{ "doc", "tools", b.fmt("{s}.md", .{name}) })));
+            pandoc_step.addFileArg(b.path(b.pathJoin(&.{ "doc", "tools", b.fmt("{s}.md", .{name}) })));
 
-                    const man_basename = b.fmt("{s}.1", .{bin_name});
-                    const man_path = pandoc_step.addPrefixedOutputFileArg("-o", man_basename);
+            const man_basename = b.fmt("{s}.1", .{bin_name});
+            const man_path = pandoc_step.addPrefixedOutputFileArg("-o", man_basename);
 
-                    pandoc_step.expectExitCode(0);
+            pandoc_step.expectExitCode(0);
 
-                    install_tls.dependOn(&b.addInstallFile(
-                        man_path,
-                        b.pathJoin(&.{ "share", "man", "man1", man_basename }),
-                    ).step);
-                }
-            }
-        }
-    }
+            install_tls.dependOn(&b.addInstallFile(
+                man_path,
+                b.pathJoin(&.{ "share", "man", "man1", man_basename }),
+            ).step);
+        };
+    };
 
     const run_test_step = b.addRunArtifact(b.addTest(.{
         .name = "graf-test",
