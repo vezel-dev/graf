@@ -20,6 +20,7 @@
         .clap = .{
             .url = "git+https://github.com/Hejsil/zig-clap.git?ref=0.9.1#d71cc39a94f3e6ccbad00c25d350c9147de4df9f",
             .hash = "122062d301a203d003547b414237229b09a7980095061697349f8bef41be9c30266b",
+            .lazy = true,
         },
         .ffi = .{
             .url = "git+https://github.com/vezel-dev/libffi.git?ref=v3.4.6-6#2e2a0527a080149f2e15c6827e56a656fbb6b41b",

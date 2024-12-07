@@ -8,6 +8,8 @@ const version = "0.1.0-dev";
 pub fn build(b: *std.Build) anyerror!void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+
+    const enable_bin = b.option(bool, "enable-bin", "Enable building gc-* binaries (true)") orelse true;
     const enable_aro = b.option(bool, "enable-aro", "Enable Aro C compiler integration (true)") orelse true;
     const enable_ffi = b.option(bool, "enable-ffi", "Enable libffi interpreter integration (true)") orelse true;
 
@@ -192,36 +194,14 @@ pub fn build(b: *std.Build) anyerror!void {
         \\Libs: -L${{libdir}} -lgraf
     , .{version})), b.pathJoin(&.{ "pkgconfig", "libgraf.pc" })).step);
 
-    const clap_mod = b.dependency("clap", .{
-        .target = target,
-        .optimize = optimize,
-    }).module("clap");
+    if (enable_bin) {
+        if (b.lazyDependency("clap", .{
+            .target = target,
+            .optimize = optimize,
+        })) |dep| {
+            const clap_mod = dep.module("clap");
 
-    inline for (.{
-        "as",
-        "cc",
-        "chk",
-        "dis",
-        "dot",
-        "fmt",
-        "ld",
-        "mc",
-        "opt",
-        "run",
-    }) |name| {
-        if (enable_aro or !std.mem.eql(u8, name, "cc")) {
-            const bin_name = b.fmt("gc-{s}", .{name});
-
-            const exe_step = b.addExecutable(.{
-                .name = bin_name,
-                .root_source_file = b.path(b.pathJoin(&.{ "bin", name, "main.zig" })),
-                .target = target,
-                .optimize = optimize,
-                .strip = optimize != .Debug,
-            });
-
-            // PIE is off by default; enable it for hardening purposes.
-            exe_step.pie = switch (t.cpu.arch) {
+            const pie_works = switch (t.cpu.arch) {
                 // TODO: https://github.com/ziglang/zig/issues/20305
                 .mips, .mipsel, .mips64, .mips64el => false,
                 .powerpc, .powerpcle, .powerpc64, .powerpc64le => false,
@@ -230,50 +210,78 @@ pub fn build(b: *std.Build) anyerror!void {
                 else => true,
             };
 
-            const exe_mod = &exe_step.root_module;
+            inline for (.{
+                "as",
+                "cc",
+                "chk",
+                "dis",
+                "dot",
+                "fmt",
+                "ld",
+                "mc",
+                "opt",
+                "run",
+            }) |name| {
+                if (enable_aro or !std.mem.eql(u8, name, "cc")) {
+                    const bin_name = b.fmt("gc-{s}", .{name});
 
-            exe_mod.addImport("graf", graf_mod);
-            exe_mod.addImport("clap", clap_mod);
+                    const exe_step = b.addExecutable(.{
+                        .name = bin_name,
+                        .root_source_file = b.path(b.pathJoin(&.{ "bin", name, "main.zig" })),
+                        .target = target,
+                        .optimize = optimize,
+                        .strip = optimize != .Debug,
+                    });
 
-            b.installArtifact(exe_step);
+                    // PIE is off by default; enable it for hardening purposes.
+                    exe_step.pie = pie_works;
 
-            const run_exe_step = b.addRunArtifact(exe_step);
+                    const exe_mod = &exe_step.root_module;
 
-            if (b.args) |args| {
-                run_exe_step.addArgs(args);
+                    exe_mod.addImport("graf", graf_mod);
+                    exe_mod.addImport("clap", clap_mod);
+
+                    b.installArtifact(exe_step);
+
+                    const run_exe_step = b.addRunArtifact(exe_step);
+
+                    if (b.args) |args| {
+                        run_exe_step.addArgs(args);
+                    }
+
+                    b.step(bin_name, b.fmt("Build and run `{s}` (pass arguments with `-- <args>`)", .{bin_name}))
+                        .dependOn(&run_exe_step.step);
+
+                    const pandoc_step = b.addSystemCommand(&.{
+                        pandoc_prog,
+                        "--standalone",
+                        "--fail-if-warnings",
+                        "--shift-heading-level-by=-1",
+                        "-M",
+                        b.fmt("title={s}", .{bin_name}),
+                        "-M",
+                        "author=Vezel Contributors",
+                        "-V",
+                        "section=1",
+                        "-V",
+                        "header=Graf",
+                        "-V",
+                        b.fmt("footer={s}", .{version}),
+                    });
+
+                    pandoc_step.addFileArg(b.path(b.pathJoin(&.{ "doc", "tools", b.fmt("{s}.md", .{name}) })));
+
+                    const man_basename = b.fmt("{s}.1", .{bin_name});
+                    const man_path = pandoc_step.addPrefixedOutputFileArg("-o", man_basename);
+
+                    pandoc_step.expectExitCode(0);
+
+                    install_tls.dependOn(&b.addInstallFile(
+                        man_path,
+                        b.pathJoin(&.{ "share", "man", "man1", man_basename }),
+                    ).step);
+                }
             }
-
-            b.step(bin_name, b.fmt("Build and run `{s}` (pass arguments with `-- <args>`)", .{bin_name}))
-                .dependOn(&run_exe_step.step);
-
-            const pandoc_step = b.addSystemCommand(&.{
-                pandoc_prog,
-                "--standalone",
-                "--fail-if-warnings",
-                "--shift-heading-level-by=-1",
-                "-M",
-                b.fmt("title={s}", .{bin_name}),
-                "-M",
-                "author=Vezel Contributors",
-                "-V",
-                "section=1",
-                "-V",
-                "header=Graf",
-                "-V",
-                b.fmt("footer={s}", .{version}),
-            });
-
-            pandoc_step.addFileArg(b.path(b.pathJoin(&.{ "doc", "tools", b.fmt("{s}.md", .{name}) })));
-
-            const man_basename = b.fmt("{s}.1", .{bin_name});
-            const man_path = pandoc_step.addPrefixedOutputFileArg("-o", man_basename);
-
-            pandoc_step.expectExitCode(0);
-
-            install_tls.dependOn(&b.addInstallFile(
-                man_path,
-                b.pathJoin(&.{ "share", "man", "man1", man_basename }),
-            ).step);
         }
     }
 
