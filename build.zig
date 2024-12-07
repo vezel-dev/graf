@@ -9,12 +9,14 @@ pub fn build(b: *std.Build) anyerror!void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const with_aro = b.option(bool, "with-aro", "Build with Aro C compiler integration (true)") orelse true;
+    const with_ffi = b.option(bool, "with-ffi", "Build with libffi interpreter integration (true)") orelse true;
+
+    const pie = b.option(bool, "pie", "Produce position-independent executables");
+
     const build_exe = b.option(bool, "build-exe", "Build gc-* executables (true)") orelse true;
     const build_stlib = b.option(bool, "build-stlib", "Build libgraf static library (true)") orelse true;
     const build_shlib = b.option(bool, "build-shlib", "Build libgraf shared library (true)") orelse true;
-
-    const with_aro = b.option(bool, "with-aro", "Build with Aro C compiler integration (true)") orelse true;
-    const with_ffi = b.option(bool, "with-ffi", "Build with libffi interpreter integration (true)") orelse true;
 
     // TODO: https://github.com/ziglang/zig/issues/15373
     const pandoc_prog = b.findProgram(&.{"pandoc"}, &.{}) catch @panic("Could not locate `pandoc` program.");
@@ -208,15 +210,6 @@ pub fn build(b: *std.Build) anyerror!void {
         })) |dep| {
             const clap_mod = dep.module("clap");
 
-            const pie_works = switch (t.cpu.arch) {
-                // TODO: https://github.com/ziglang/zig/issues/20305
-                .mips, .mipsel, .mips64, .mips64el => false,
-                .powerpc, .powerpcle, .powerpc64, .powerpc64le => false,
-                // TODO: https://github.com/ziglang/zig/issues/20306
-                .riscv64 => false,
-                else => true,
-            };
-
             inline for (.{
                 "as",
                 "cc",
@@ -240,8 +233,14 @@ pub fn build(b: *std.Build) anyerror!void {
                         .strip = optimize != .Debug,
                     });
 
-                    // PIE is off by default; enable it for hardening purposes.
-                    exe_step.pie = pie_works;
+                    exe_step.pie = switch (t.cpu.arch) {
+                        // TODO: https://github.com/ziglang/zig/issues/20305
+                        .mips, .mipsel, .mips64, .mips64el => false,
+                        .powerpc, .powerpcle, .powerpc64, .powerpc64le => false,
+                        // TODO: https://github.com/ziglang/zig/issues/20306
+                        .riscv64 => false,
+                        else => pie,
+                    };
 
                     const exe_mod = &exe_step.root_module;
 
