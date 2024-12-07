@@ -190,20 +190,23 @@ pub fn build(b: *std.Build) anyerror!void {
         b.installArtifact(step);
     };
 
-    install_tls.dependOn(&b.addInstallLibFile(b.addWriteFiles().add("libgraf.pc", b.fmt(
-        \\prefix=${{pcfiledir}}/../..
-        \\exec_prefix=${{prefix}}
-        \\includedir=${{prefix}}/include/graf
-        \\libdir=${{prefix}}/lib
-        \\
-        \\Name: Graf
-        \\Description: A graph-oriented intermediate representation, optimization framework, and machine code generator.
-        \\URL: https://docs.vezel.dev/graf
-        \\Version: {}
-        \\
-        \\Cflags: -I${{includedir}}
-        \\Libs: -L${{libdir}} -lgraf
-    , .{version})), b.pathJoin(&.{ "pkgconfig", "libgraf.pc" })).step);
+    if (build_stlib or build_shlib) install_tls.dependOn(&b.addInstallLibFile(
+        b.addWriteFiles().add("libgraf.pc", b.fmt(
+            \\prefix=${{pcfiledir}}/../..
+            \\exec_prefix=${{prefix}}
+            \\includedir=${{prefix}}/include/graf
+            \\libdir=${{prefix}}/lib
+            \\
+            \\Name: Graf
+            \\Description: A graph-oriented intermediate representation, optimization framework, and machine code generator.
+            \\URL: https://docs.vezel.dev/graf
+            \\Version: {}
+            \\
+            \\Cflags: -I${{includedir}}
+            \\Libs: -L${{libdir}} -lgraf
+        , .{version})),
+        b.pathJoin(&.{ "pkgconfig", "libgraf.pc" }),
+    ).step);
 
     if (build_exe) {
         if (b.lazyDependency("clap", .{
