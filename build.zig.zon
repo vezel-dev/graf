@@ -13,19 +13,19 @@
     },
     .dependencies = .{
         .aro = .{
-            .url = "https://github.com/Vexu/arocc/archive/8a885d8f6b65c6ed44d56a9f51e0401d76e6940d.tar.gz",
+            .url = "git+https://github.com/Vexu/arocc.git#8a885d8f6b65c6ed44d56a9f51e0401d76e6940d",
             .hash = "1220924a9c1a1762d06d8b0b33ce6c3edf0c3ec4beef1be14177fdc1aaeba301ee03",
         },
         .clap = .{
-            .url = "https://github.com/Hejsil/zig-clap/archive/0.9.1.tar.gz",
+            .url = "git+https://github.com/Hejsil/zig-clap.git?ref=0.9.1#d71cc39a94f3e6ccbad00c25d350c9147de4df9f",
             .hash = "122062d301a203d003547b414237229b09a7980095061697349f8bef41be9c30266b",
         },
         .ffi = .{
-            .url = "https://github.com/vezel-dev/libffi/archive/v3.4.6-3.tar.gz",
-            .hash = "12206bb70d2fd71c9aeb41ee4b584cacb841ffeaaf6faff3069b1b59bf3210bbbeaa",
+            .url = "git+https://github.com/vezel-dev/libffi.git?ref=v3.4.6-6#2e2a0527a080149f2e15c6827e56a656fbb6b41b",
+            .hash = "1220870d4bcd70fe7dc9b65f23006f0c4d6ed0a08575d9835b3c4e0341c1ad2ec95f",
         },
         .mecha = .{
-            .url = "https://github.com/Hejsil/mecha/archive/0.9.0.tar.gz",
+            .url = "git+https://github.com/Hejsil/mecha.git?ref=0.9.0#2edc8ad6b5bb1728f4c6fae358438006b0ce04ee",
             .hash = "12206311fbaae8a0adc35e4835ddd9bcc1ff8fff756c9df40e19133f007fa05d3948",
         },
     },
