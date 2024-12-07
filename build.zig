@@ -3,7 +3,7 @@
 const std = @import("std");
 
 // TODO: https://github.com/ziglang/zig/issues/14531
-const version = "0.1.0-dev";
+const version = std.SemanticVersion.parse("0.1.0-dev") catch unreachable;
 
 pub fn build(b: *std.Build) anyerror!void {
     const target = b.standardTargetOptions(.{});
@@ -56,7 +56,7 @@ pub fn build(b: *std.Build) anyerror!void {
     }
 
     const code_install_extension_step = b.addSystemCommand(
-        &.{ "code", "--install-extension", b.pathJoin(&.{ "vscode", b.fmt("graf-{s}.vsix", .{version}) }) },
+        &.{ "code", "--install-extension", b.pathJoin(&.{ "vscode", b.fmt("graf-{}.vsix", .{version}) }) },
     );
     code_install_extension_step.step.dependOn(&npm_run_build_vscode.step);
 
@@ -162,6 +162,7 @@ pub fn build(b: *std.Build) anyerror!void {
         // Avoid name clash with the DLL import library on Windows.
         .name = if (t.os.tag == .windows) "libgraf" else "graf",
         .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
+        .version = version,
         .target = target,
         .optimize = optimize,
         .strip = optimize != .Debug,
@@ -171,6 +172,7 @@ pub fn build(b: *std.Build) anyerror!void {
         const shlib_step = b.addSharedLibrary(.{
             .name = "graf",
             .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
+            .version = version,
             .target = target,
             .optimize = optimize,
             .strip = optimize != .Debug,
@@ -197,7 +199,7 @@ pub fn build(b: *std.Build) anyerror!void {
         \\Name: Graf
         \\Description: A graph-oriented intermediate representation, optimization framework, and machine code generator.
         \\URL: https://docs.vezel.dev/graf
-        \\Version: {s}
+        \\Version: {}
         \\
         \\Cflags: -I${{includedir}}
         \\Libs: -L${{libdir}} -lgraf
@@ -228,6 +230,7 @@ pub fn build(b: *std.Build) anyerror!void {
                     const exe_step = b.addExecutable(.{
                         .name = bin_name,
                         .root_source_file = b.path(b.pathJoin(&.{ "bin", name, "main.zig" })),
+                        .version = version,
                         .target = target,
                         .optimize = optimize,
                         .strip = optimize != .Debug,
@@ -272,7 +275,7 @@ pub fn build(b: *std.Build) anyerror!void {
                         "-V",
                         "header=Graf",
                         "-V",
-                        b.fmt("footer={s}", .{version}),
+                        b.fmt("footer={}", .{version}),
                     });
 
                     pandoc_step.addFileArg(b.path(b.pathJoin(&.{ "doc", "tools", b.fmt("{s}.md", .{name}) })));
