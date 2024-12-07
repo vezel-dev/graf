@@ -103,20 +103,19 @@ pub fn build(b: *std.Build) anyerror!void {
     }).module("mecha"));
 
     if (!disable_aro) {
-        // TODO: Aro should be a lazy dependency, but this causes HTTP problems on macOS.
-        const aro_dep = b.dependency("aro", .{
+        if (b.lazyDependency("aro", .{
             .target = target,
             .optimize = optimize,
-        });
+        })) |dep| {
+            graf_mod.addImport("aro", dep.module("aro"));
 
-        graf_mod.addImport("aro", aro_dep.module("aro"));
-
-        // TODO: These headers should also be installed for third-party users somehow.
-        b.installDirectory(.{
-            .source_dir = aro_dep.path("include"),
-            .install_dir = .header,
-            .install_subdir = b.pathJoin(&.{ "graf", "aro" }),
-        });
+            // TODO: These headers should also be installed for third-party users somehow.
+            b.installDirectory(.{
+                .source_dir = dep.path("include"),
+                .install_dir = .header,
+                .install_subdir = b.pathJoin(&.{ "graf", "aro" }),
+            });
+        }
     }
 
     const t = target.result;
@@ -141,11 +140,13 @@ pub fn build(b: *std.Build) anyerror!void {
             };
 
             if (libffi_works) {
-                // TODO: libffi should be a lazy dependency, but this causes HTTP problems on macOS.
-                graf_mod.linkLibrary(b.dependency("ffi", .{
+                if (b.lazyDependency("ffi", .{
                     .target = target,
                     .optimize = optimize,
-                }).artifact("ffi"));
+                })) |dep| {
+                    graf_mod.addImport("ffi", dep.module("ffi"));
+                    graf_mod.linkLibrary(dep.artifact("ffi"));
+                }
             }
         }
     }

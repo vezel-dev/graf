@@ -15,6 +15,7 @@
         .aro = .{
             .url = "git+https://github.com/Vexu/arocc.git#8a885d8f6b65c6ed44d56a9f51e0401d76e6940d",
             .hash = "1220924a9c1a1762d06d8b0b33ce6c3edf0c3ec4beef1be14177fdc1aaeba301ee03",
+            .lazy = true,
         },
         .clap = .{
             .url = "git+https://github.com/Hejsil/zig-clap.git?ref=0.9.1#d71cc39a94f3e6ccbad00c25d350c9147de4df9f",
@@ -23,6 +24,7 @@
         .ffi = .{
             .url = "git+https://github.com/vezel-dev/libffi.git?ref=v3.4.6-6#2e2a0527a080149f2e15c6827e56a656fbb6b41b",
             .hash = "1220870d4bcd70fe7dc9b65f23006f0c4d6ed0a08575d9835b3c4e0341c1ad2ec95f",
+            .lazy = true,
         },
         .mecha = .{
             .url = "git+https://github.com/Hejsil/mecha.git?ref=0.9.0#2edc8ad6b5bb1728f4c6fae358438006b0ce04ee",
