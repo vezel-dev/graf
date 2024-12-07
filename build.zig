@@ -12,7 +12,12 @@ pub fn build(b: *std.Build) anyerror!void {
     const with_aro = b.option(bool, "with-aro", "Build with Aro C compiler integration (true)") orelse true;
     const with_ffi = b.option(bool, "with-ffi", "Build with libffi interpreter integration (true)") orelse true;
 
+    const code_model = b.option(std.builtin.CodeModel, "code-model", "Assume a particular code model") orelse .default;
+    const single_threaded = b.option(bool, "single-threaded", "Assume a single-threaded environment");
     const pie = b.option(bool, "pie", "Produce position-independent executables");
+    const strip = b.option(bool, "strip", "Omit debug information in binaries");
+    const valgrind = b.option(bool, "valgrind", "Enable Valgrind client requests");
+    const sanitize_thread = b.option(bool, "sanitize-thread", "Enable ThreadSanitizer instrumentation");
 
     const build_exe = b.option(bool, "build-exe", "Build gc-* executables (true)") orelse true;
     const build_stlib = b.option(bool, "build-stlib", "Build libgraf static library (true)") orelse true;
@@ -150,15 +155,24 @@ pub fn build(b: *std.Build) anyerror!void {
         };
     };
 
-    const stlib_step = if (build_stlib) b.addStaticLibrary(.{
-        // Avoid name clash with the DLL import library on Windows.
-        .name = if (t.os.tag == .windows) "libgraf" else "graf",
-        .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
-        .version = version,
-        .target = target,
-        .optimize = optimize,
-        .strip = optimize != .Debug,
-    }) else null;
+    const stlib_step = if (build_stlib) blk: {
+        const stlib_step = b.addStaticLibrary(.{
+            // Avoid name clash with the DLL import library on Windows.
+            .name = if (t.os.tag == .windows) "libgraf" else "graf",
+            .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
+            .version = version,
+            .target = target,
+            .optimize = optimize,
+            .single_threaded = single_threaded,
+            .strip = strip,
+            .code_model = code_model,
+            .sanitize_thread = sanitize_thread,
+        });
+
+        stlib_step.root_module.valgrind = valgrind;
+
+        break :blk stlib_step;
+    } else null;
 
     const shlib_step = if (build_shlib) blk: {
         const shlib_step = b.addSharedLibrary(.{
@@ -167,8 +181,13 @@ pub fn build(b: *std.Build) anyerror!void {
             .version = version,
             .target = target,
             .optimize = optimize,
-            .strip = optimize != .Debug,
+            .single_threaded = single_threaded,
+            .strip = strip,
+            .code_model = code_model,
+            .sanitize_thread = sanitize_thread,
         });
+
+        shlib_step.root_module.valgrind = valgrind;
 
         // On Linux, undefined symbols are allowed in shared libraries by default; override that.
         shlib_step.linker_allow_shlib_undefined = false;
@@ -226,8 +245,13 @@ pub fn build(b: *std.Build) anyerror!void {
                 .version = version,
                 .target = target,
                 .optimize = optimize,
-                .strip = optimize != .Debug,
+                .single_threaded = single_threaded,
+                .strip = strip,
+                .code_model = code_model,
+                .sanitize_thread = sanitize_thread,
             });
+
+            exe_step.root_module.valgrind = valgrind;
 
             exe_step.pie = switch (t.cpu.arch) {
                 // TODO: https://github.com/ziglang/zig/issues/20305
