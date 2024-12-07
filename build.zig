@@ -10,6 +10,9 @@ pub fn build(b: *std.Build) anyerror!void {
     const optimize = b.standardOptimizeOption(.{});
 
     const build_exe = b.option(bool, "build-exe", "Build gc-* executables (true)") orelse true;
+    const build_stlib = b.option(bool, "build-stlib", "Build libgraf static library (true)") orelse true;
+    const build_shlib = b.option(bool, "build-shlib", "Build libgraf shared library (true)") orelse true;
+
     const with_aro = b.option(bool, "with-aro", "Build with Aro C compiler integration (true)") orelse true;
     const with_ffi = b.option(bool, "with-ffi", "Build with libffi interpreter integration (true)") orelse true;
 
@@ -153,31 +156,35 @@ pub fn build(b: *std.Build) anyerror!void {
         }
     }
 
-    const stlib_step = b.addStaticLibrary(.{
+    const stlib_step = if (build_stlib) b.addStaticLibrary(.{
         // Avoid name clash with the DLL import library on Windows.
         .name = if (t.os.tag == .windows) "libgraf" else "graf",
         .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
         .target = target,
         .optimize = optimize,
         .strip = optimize != .Debug,
-    });
+    }) else null;
 
-    const shlib_step = b.addSharedLibrary(.{
-        .name = "graf",
-        .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
-        .target = target,
-        .optimize = optimize,
-        .strip = optimize != .Debug,
-    });
+    const shlib_step = if (build_shlib) blk: {
+        const shlib_step = b.addSharedLibrary(.{
+            .name = "graf",
+            .root_source_file = b.path(b.pathJoin(&.{ "lib", "c.zig" })),
+            .target = target,
+            .optimize = optimize,
+            .strip = optimize != .Debug,
+        });
 
-    // On Linux, undefined symbols are allowed in shared libraries by default; override that.
-    shlib_step.linker_allow_shlib_undefined = false;
+        // On Linux, undefined symbols are allowed in shared libraries by default; override that.
+        shlib_step.linker_allow_shlib_undefined = false;
 
-    inline for (.{ stlib_step, shlib_step }) |step| {
+        break :blk shlib_step;
+    } else null;
+
+    inline for (.{ stlib_step, shlib_step }) |s| if (s) |step| {
         step.installHeadersDirectory(b.path("inc"), "graf", .{});
 
         b.installArtifact(step);
-    }
+    };
 
     install_tls.dependOn(&b.addInstallLibFile(b.addWriteFiles().add("libgraf.pc", b.fmt(
         \\prefix=${{pcfiledir}}/../..
