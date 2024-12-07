@@ -8,8 +8,8 @@ const version = "0.1.0-dev";
 pub fn build(b: *std.Build) anyerror!void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-    const disable_aro = b.option(bool, "disable-aro", "Disable Aro C compiler integration") orelse false;
-    const disable_ffi = b.option(bool, "disable-ffi", "Disable libffi interpreter integration") orelse false;
+    const enable_aro = b.option(bool, "enable-aro", "Enable Aro C compiler integration (true)") orelse true;
+    const enable_ffi = b.option(bool, "enable-ffi", "Enable libffi interpreter integration (true)") orelse true;
 
     // TODO: https://github.com/ziglang/zig/issues/15373
     const pandoc_prog = b.findProgram(&.{"pandoc"}, &.{}) catch @panic("Could not locate `pandoc` program.");
@@ -102,7 +102,7 @@ pub fn build(b: *std.Build) anyerror!void {
         .optimize = optimize,
     }).module("mecha"));
 
-    if (!disable_aro) {
+    if (enable_aro) {
         if (b.lazyDependency("aro", .{
             .target = target,
             .optimize = optimize,
@@ -120,7 +120,7 @@ pub fn build(b: *std.Build) anyerror!void {
 
     const t = target.result;
 
-    if (!disable_ffi) {
+    if (enable_ffi) {
         if (b.systemIntegrationOption("ffi", .{})) {
             graf_mod.linkSystemLibrary("ffi", .{});
         } else {
@@ -209,7 +209,7 @@ pub fn build(b: *std.Build) anyerror!void {
         "opt",
         "run",
     }) |name| {
-        if (!disable_aro or !std.mem.eql(u8, name, "cc")) {
+        if (enable_aro or !std.mem.eql(u8, name, "cc")) {
             const bin_name = b.fmt("gc-{s}", .{name});
 
             const exe_step = b.addExecutable(.{
