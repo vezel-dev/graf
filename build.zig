@@ -9,7 +9,7 @@ pub fn build(b: *std.Build) anyerror!void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const enable_bin = b.option(bool, "enable-bin", "Enable building gc-* binaries (true)") orelse true;
+    const build_exe = b.option(bool, "build-exe", "Build gc-* executables (true)") orelse true;
     const with_aro = b.option(bool, "with-aro", "Build with Aro C compiler integration (true)") orelse true;
     const with_ffi = b.option(bool, "with-ffi", "Build with libffi interpreter integration (true)") orelse true;
 
@@ -194,7 +194,7 @@ pub fn build(b: *std.Build) anyerror!void {
         \\Libs: -L${{libdir}} -lgraf
     , .{version})), b.pathJoin(&.{ "pkgconfig", "libgraf.pc" })).step);
 
-    if (enable_bin) {
+    if (build_exe) {
         if (b.lazyDependency("clap", .{
             .target = target,
             .optimize = optimize,
