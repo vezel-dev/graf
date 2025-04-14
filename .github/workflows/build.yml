@@ -41,7 +41,7 @@ jobs:
           fetch-depth: 0
           submodules: recursive
       - name: Set up Zig
-        uses: mlugg/setup-zig@v1.2.1
+        uses: mlugg/setup-zig@main
         with:
           version: 0.13.0
       - name: Set up Pandoc
